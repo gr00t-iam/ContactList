@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Contacts Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* --- HEADER & TOOLBAR --- */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .title-search-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 { margin: 0; font-size: 1.8em; }
+
+        .search-bar {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #2d2d2d;
+            color: #fff;
+            width: 250px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar:focus { border-color: #0078d7; }
+
+        .action-buttons button {
+            color: #fff;
+            padding: 8px 14px;
+            margin-left: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            border: 1px solid #444;
+            background-color: #333;
+        }
+
+        .action-buttons button:hover { background-color: #444; }
+
+        #add-btn { background-color: #0078d7; border-color: #005a9e; }
+        #add-btn:hover { background-color: #005a9e; border-color: #004080; }
+
+        #remove-btn { background-color: #d32f2f; border-color: #b71c1c; }
+        #remove-btn:hover { background-color: #b71c1c; border-color: #7f0000; }
+
+        .btn-danger-active {
+            background-color: #8b0000 !important;
+            border-color: #ff4d4d !important;
+            box-shadow: 0 0 8px rgba(255, 77, 77, 0.5);
+        }
+
+        /* --- GRID & CARDS --- */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-auto-rows: 90px;
+            gap: 15px;
+        }
+
+        .contact-card {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; 
+            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        .contact-card:hover {
+            background-color: #3d3d3d;
+            border-color: #0078d7;
+            transform: translateY(-2px);
+            cursor: pointer;
+        }
+
+        /* --- DELETE MODE --- */
+        .delete-mode .contact-card { border-color: #ff4d4d; }
+        .delete-mode .contact-card:hover { background-color: #4d2d2d; border-color: #ff4d4d; }
+        .delete-mode .contact-card::after {
+            content: "✕";
+            position: absolute; top: 10px; right: 15px;
+            color: #ff4d4d; font-weight: bold; font-size: 1.2em;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .contact-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 15px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .phone-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .contact-number {
+            color: #0078d7;
+            font-weight: bold; 
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .contact-card:hover .contact-number { color: #3399ff; }
+
+        /* Phone Icon */
+        .contact-number::before {
+            content: ""; display: inline-block; width: 14px; height: 14px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230078d7'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E");
+            background-size: contain; background-repeat: no-repeat;
+            transition: background-image 0.2s;
+        }
+        .contact-card:hover .contact-number::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233399ff'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E");
+        }
+
+        /* --- COPY BUTTON --- */
+        .copy-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .contact-card:hover .copy-btn { opacity: 0.8; }
+        .copy-btn:hover { opacity: 1 !important; transform: scale(1.1); }
+
+        .copy-icon {
+            width: 14px; height: 14px;
+            fill: #aaaaaa;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background-color: #2d2d2d; padding: 25px; border-radius: 8px; border: 1px solid #444;
+            width: 300px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .modal-content h2 { margin-top: 0; margin-bottom: 5px; }
+        .modal-content input {
+            padding: 10px; border-radius: 4px; border: 1px solid #555; background-color: #1e1e1e; color: #fff;
+        }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn-cancel { background-color: #555; color: white; padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;}
+        .btn-save { background-color: #0078d7; color: white; padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-save:hover { background-color: #005a9e; }
+        .btn-cancel:hover { background-color: #666; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="title-search-wrapper">
+            <h1>Team Contacts</h1>
+            <input type="text" id="search-input" class="search-bar" placeholder="Search names or numbers...">
+        </div>
+        <div class="action-buttons">
+            <button id="export-btn" title="Download Backup">Export</button>
+            <button id="import-btn" title="Load Backup">Import</button>
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+            
+            <button id="remove-btn">Remove Contact</button>
+            <button id="add-btn">Add Contact</button>
+        </div>
+    </div>
+
+    <div class="contact-grid" id="grid">
+        </div>
+
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal-content">
+            <h2>Add Contact</h2>
+            <input type="text" id="fname" placeholder="First Name" autocomplete="off">
+            <input type="text" id="lname" placeholder="Last Name" autocomplete="off">
+            <input type="tel" id="primary-phone" placeholder="Primary Phone (Required)" autocomplete="off">
+            <input type="tel" id="work-phone" placeholder="Work Phone (Optional)" autocomplete="off">
+            
+            <div class="modal-buttons">
+                <button class="btn-cancel" id="cancel-btn">Cancel</button>
+                <button class="btn-save" id="save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DEFAULT DATA & STATE MANAGEMENT ---
+        const defaultContacts = [
+            { id: "1", name: "Aaron, Gonzales", phone: "417-592-3279", work: "" },
+            { id: "2", name: "Avery, Stephenson", phone: "706-761-1940", work: "" },
+            { id: "3", name: "Ayo, David", phone: "918-933-7319", work: "" },
+            { id: "4", name: "Bradleigh, Rice", phone: "601-754-1528", work: "" },
+            { id: "5", name: "Bruce, Asmussen", phone: "563-459-9202", work: "" },
+            { id: "6", name: "Christian, Chambers", phone: "949-478-4072", work: "" },
+            { id: "7", name: "Derrick, Dowden", phone: "972-946-6174", work: "" },
+            { id: "8", name: "Devante, Tillery", phone: "929-214-3903", work: "" },
+            { id: "9", name: "Elijah, Schmutz", phone: "417-396-6988", work: "" },
+            { id: "10", name: "Emika, Walker", phone: "479-386-0127", work: "" },
+            { id: "11", name: "Jeff, Young", phone: "(479) 386-0261", work: "" },
+            { id: "12", name: "Josh, Carsten", phone: "479-504-8553", work: "" },
+            { id: "13", name: "Kenneth, Lofton", phone: "470-610-9002", work: "" },
+            { id: "14", name: "Kenny, Hudson", phone: "818-824-2353", work: "" },
+            { id: "15", name: "Morrison, T - R&R", phone: "828-320-8745", work: "" },
+            { id: "16", name: "Murphy USA, Project Line", phone: "(870)-881-6784", work: "" },
+            { id: "17", name: "Murphy USA, Randy", phone: "870-866-4271", work: "" },
+            { id: "18", name: "Murphy USA, Sammy", phone: "870-918-7986", work: "" },
+            { id: "19", name: "Murphy USA, Support", phone: "(870) 918-1719", work: "" },
+            { id: "20", name: "Nasir, Yusuf", phone: "479-426-7083", work: "" },
+            { id: "21", name: "Page All, Gravette", phone: "80020", work: "" },
+            { id: "22", name: "Shalane, Blaylock", phone: "903-869-1264", work: "" },
+            { id: "23", name: "Thomas, Sanders", phone: "901-422-1126", work: "" },
+            { id: "24", name: "Worren, Scott", phone: "479-519-0294", work: "" },
+            { id: "25", name: "Zachary, Gilbreth", phone: "417-622-9391", work: "" }
+        ];
+
+        // Load from Local Storage, or use default if empty
+        let contactsData = JSON.parse(localStorage.getItem('3cx_contacts_db'));
+        if (!contactsData || contactsData.length === 0) {
+            contactsData = [...defaultContacts];
+        }
+
+        const grid = document.getElementById('grid');
+        let isDeleteMode = false;
+
+        // --- 2. RENDER ENGINE ---
+        function renderGrid(dataToRender) {
+            grid.innerHTML = ''; // Clear grid
+
+            // Alphabetical Sort
+            dataToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+            dataToRender.forEach(contact => {
+                const cleanPhone = contact.phone.replace(/[^0-9+]/g, '');
+                
+                const card = document.createElement('a');
+                card.href = `tel:${cleanPhone}`;
+                card.className = 'contact-card';
+                card.title = contact.name;
+                card.dataset.id = contact.id; // Tag for deletion
+
+                let html = `<span class="contact-name">${contact.name}</span>`;
+                
+                // Primary Phone Row with Copy Button
+                html += `
+                    <div class="phone-wrapper">
+                        <span class="contact-number">${contact.phone}</span>
+                        <button class="copy-btn" title="Copy Number" onclick="copyText(event, '${contact.phone}')">
+                            <svg class="copy-icon" viewBox="0 0 24 24">
+                                <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                        </button>
+                    </div>`;
+
+                // Work Phone Row (if it exists)
+                if (contact.work) {
+                    const cleanWork = contact.work.replace(/[^0-9+]/g, '');
+                    html += `
+                    <div class="phone-wrapper" style="margin-top: -5px;">
+                        <span class="contact-number" style="color: #888;">${contact.work} (W)</span>
+                        <button class="copy-btn" title="Copy Work Number" onclick="copyText(event, '${contact.work}')">
+                            <svg class="copy-icon" viewBox="0 0 24 24">
+                                <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                        </button>
+                    </div>`;
+                }
+
+                card.innerHTML = html;
+                grid.appendChild(card);
+            });
+        }
+
+        // Initial Render
+        renderGrid(contactsData);
+
+        function saveAndRender() {
+            localStorage.setItem('3cx_contacts_db', JSON.stringify(contactsData));
+            renderGrid(contactsData);
+            document.getElementById('search-input').value = ''; // Reset search
+        }
+
+        // --- 3. LIVE SEARCH ---
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = contactsData.filter(c => 
+                c.name.toLowerCase().includes(term) || 
+                c.phone.includes(term) || 
+                (c.work && c.work.includes(term))
+            );
+            renderGrid(filtered);
+        });
+
+        // --- 4. CLICK TO COPY ---
+        window.copyText = function(event, text) {
+            event.preventDefault(); // Stop the 'tel:' link
+            event.stopPropagation(); // Stop the card click
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.currentTarget;
+                const originalHTML = btn.innerHTML;
+                // Temporarily show a checkmark
+                btn.innerHTML = `<svg class="copy-icon" viewBox="0 0 24 24" fill="#00ff00"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+                setTimeout(() => { btn.innerHTML = originalHTML; }, 1000);
+            });
+        }
+
+        // --- 5. EXPORT / IMPORT ---
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const dataStr = JSON.stringify(contactsData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `3cx-contacts-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        contactsData = importedData;
+                        saveAndRender();
+                        alert("Contacts imported successfully!");
+                    } else {
+                        alert("Invalid file format. Please upload a valid backup JSON.");
+                    }
+                } catch (err) {
+                    alert("Error parsing file. Ensure it is a valid JSON backup.");
+                }
+            };
+            reader.readAsText(file);
+            this.value = ''; // Reset input
+        });
+
+        // --- 6. ADD & REMOVE LOGIC ---
+        const modal = document.getElementById('add-modal');
+        
+        document.getElementById('add-btn').addEventListener('click', () => modal.style.display = 'flex');
+        
+        const closeModal = () => {
+            modal.style.display = 'none';
+            document.getElementById('fname').value = '';
+            document.getElementById('lname').value = '';
+            document.getElementById('primary-phone').value = '';
+            document.getElementById('work-phone').value = '';
+        };
+        document.getElementById('cancel-btn').addEventListener('click', closeModal);
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const fName = document.getElementById('fname').value.trim();
+            const lName = document.getElementById('lname').value.trim();
+            const pPhone = document.getElementById('primary-phone').value.trim();
+            const wPhone = document.getElementById('work-phone').value.trim();
+
+            if (!fName || !lName || !pPhone) {
+                alert("Please fill out First Name, Last Name, and Primary Phone.");
+                return;
+            }
+
+            const newContact = {
+                id: Date.now().toString(), // Unique ID for safe deletion
+                name: `${fName}, ${lName}`,
+                phone: pPhone,
+                work: wPhone
+            };
+
+            contactsData.push(newContact);
+            saveAndRender();
+            closeModal();
+        });
+
+        const removeBtn = document.getElementById('remove-btn');
+        removeBtn.addEventListener('click', () => {
+            isDeleteMode = !isDeleteMode;
+            if (isDeleteMode) {
+                grid.classList.add('delete-mode');
+                removeBtn.textContent = 'Done Removing';
+                removeBtn.classList.add('btn-danger-active');
+            } else {
+                grid.classList.remove('delete-mode');
+                removeBtn.textContent = 'Remove Contact';
+                removeBtn.classList.remove('btn-danger-active');
+            }
+        });
+
+        grid.addEventListener('click', (e) => {
+            const card = e.target.closest('.contact-card');
+            if (!card) return;
+
+            if (isDeleteMode) {
+                e.preventDefault(); 
+                const idToDelete = card.dataset.id;
+                contactsData = contactsData.filter(c => c.id !== idToDelete);
+                saveAndRender();
+            }
+        });
+    </script>
+</body>
+</html>
