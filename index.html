@@ -5,12 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quick Contacts Dashboard</title>
     <style>
+        /* --- CSS VARIABLES FOR THEME SWITCHING --- */
+        :root {
+            --bg-main: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --bg-card-hover: #3d3d3d;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --border-main: #444444;
+            --border-focus: #0078d7;
+            --input-bg: #1e1e1e;
+            --modal-bg: rgba(0, 0, 0, 0.7);
+            --icon-fill: #aaaaaa;
+        }
+
+        body.light-mode {
+            --bg-main: #f5f6f8;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f0f4f8;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-main: #d1d5db;
+            --border-focus: #0078d7;
+            --input-bg: #ffffff;
+            --modal-bg: rgba(0, 0, 0, 0.4);
+            --icon-fill: #666666;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e1e1e;
-            color: #ffffff;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             padding: 20px;
             margin: 0;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* --- HEADER & TOOLBAR --- */
@@ -18,185 +46,162 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid var(--border-main);
             padding-bottom: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 15px;
         }
 
-        .title-search-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
+        .title-search-wrapper { display: flex; align-items: center; gap: 20px; }
         h1 { margin: 0; font-size: 1.8em; }
 
         .search-bar {
-            padding: 8px 12px;
-            border-radius: 5px;
-            border: 1px solid #555;
-            background-color: #2d2d2d;
-            color: #fff;
-            width: 250px;
-            outline: none;
-            transition: border-color 0.2s;
+            padding: 8px 12px; border-radius: 5px; border: 1px solid var(--border-main);
+            background-color: var(--bg-card); color: var(--text-main);
+            width: 250px; outline: none; transition: border-color 0.2s;
         }
+        .search-bar:focus { border-color: var(--border-focus); }
 
-        .search-bar:focus { border-color: #0078d7; }
-
+        .action-buttons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        
         .action-buttons button {
-            color: #fff;
-            padding: 8px 14px;
-            margin-left: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            border: 1px solid #444;
-            background-color: #333;
+            color: #fff; padding: 8px 14px; border-radius: 5px; cursor: pointer;
+            font-weight: bold; transition: all 0.2s; border: 1px solid var(--border-main);
+            background-color: #555;
         }
+        .action-buttons button:hover { filter: brightness(1.2); }
 
-        .action-buttons button:hover { background-color: #444; }
+        .icon-btn {
+            background: none !important; border: 1px solid var(--border-main) !important;
+            padding: 8px !important; display: flex; align-items: center; justify-content: center;
+            fill: var(--text-main); border-radius: 5px; transition: 0.2s; cursor: pointer;
+        }
+        .icon-btn:hover { background-color: var(--bg-card-hover) !important; border-color: var(--border-focus) !important; fill: var(--border-focus); }
 
         #add-btn { background-color: #0078d7; border-color: #005a9e; }
-        #add-btn:hover { background-color: #005a9e; border-color: #004080; }
-
         #remove-btn { background-color: #d32f2f; border-color: #b71c1c; }
-        #remove-btn:hover { background-color: #b71c1c; border-color: #7f0000; }
+        #sync-btn { background-color: #2ea44f; border-color: #22863a; }
+        .btn-danger-active { background-color: #8b0000 !important; border-color: #ff4d4d !important; box-shadow: 0 0 8px rgba(255, 77, 77, 0.5); }
 
-        .btn-danger-active {
-            background-color: #8b0000 !important;
-            border-color: #ff4d4d !important;
-            box-shadow: 0 0 8px rgba(255, 77, 77, 0.5);
-        }
+        .theme-icon-container { display: flex; align-items: center; gap: 4px; }
+        .theme-slash { font-weight: bold; font-size: 1.2em; color: var(--text-main); }
+
+        /* --- SECTIONS --- */
+        .section-title { font-size: 1.2em; border-bottom: 1px solid var(--border-main); padding-bottom: 5px; margin-bottom: 15px; color: var(--text-muted); }
+        #recent-section { margin-bottom: 30px; }
 
         /* --- GRID & CARDS --- */
         .contact-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            grid-auto-rows: 90px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-auto-rows: 110px;
             gap: 15px;
         }
 
         .contact-card {
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 15px;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative; 
-            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
-            box-sizing: border-box;
-            height: 100%;
+            background-color: var(--bg-card); border: 1px solid var(--border-main);
+            border-radius: 8px; padding: 15px; text-decoration: none; color: inherit;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            box-sizing: border-box; height: 100%;
         }
-
         .contact-card:hover {
-            background-color: #3d3d3d;
-            border-color: #0078d7;
-            transform: translateY(-2px);
-            cursor: pointer;
+            background-color: var(--bg-card-hover); border-color: var(--border-focus);
+            transform: translateY(-2px); cursor: pointer;
         }
 
-        /* --- DELETE MODE --- */
-        .delete-mode .contact-card { border-color: #ff4d4d; }
-        .delete-mode .contact-card:hover { background-color: #4d2d2d; border-color: #ff4d4d; }
-        .delete-mode .contact-card::after {
-            content: "✕";
-            position: absolute; top: 10px; right: 15px;
-            color: #ff4d4d; font-weight: bold; font-size: 1.2em;
+        /* --- AVATARS --- */
+        .name-row { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; margin-bottom: 10px; }
+        
+        .avatar {
+            width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 0.85em; color: white;
+            flex-shrink: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
-        /* --- TYPOGRAPHY --- */
+        .contact-name-wrapper {
+            display: flex; flex-direction: column; width: calc(100% - 70px);
+        }
+
         .contact-name {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 0 15px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 1.1em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        .phone-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
+        /* --- ACTION ICONS (COPY, EDIT, QR) --- */
+        .card-actions {
+            position: absolute; top: 10px; right: 10px; display: flex; gap: 2px;
+            opacity: 0; transition: opacity 0.2s;
         }
+        .contact-card:hover .card-actions { opacity: 1; }
 
+        .card-action-btn {
+            background: none; border: none; padding: 4px; cursor: pointer;
+            transition: transform 0.2s; display: flex; align-items: center; justify-content: center;
+            opacity: 0.6;
+        }
+        .card-action-btn:hover { opacity: 1; transform: scale(1.15); }
+        .card-icon { width: 15px; height: 15px; fill: var(--icon-fill); }
+
+        /* --- COMPACT LIST VIEW --- */
+        .contact-grid.list-view { display: flex; flex-direction: column; gap: 8px; }
+        .contact-grid.list-view .contact-card {
+            flex-direction: row; justify-content: space-between; align-items: center;
+            height: auto; padding: 10px 20px;
+        }
+        .contact-grid.list-view .name-row { width: 35%; margin: 0; }
+        .contact-grid.list-view .card-actions { position: static; opacity: 0.4; }
+        .contact-grid.list-view .contact-card:hover .card-actions { opacity: 1; }
+        .contact-grid.list-view .phones-container { display: flex; flex-direction: row; gap: 20px; align-items: center; justify-content: flex-end; width: 60%; }
+        .contact-grid.list-view .phone-wrapper { width: auto; margin: 0 !important; }
+
+        /* --- PHONES --- */
+        .phones-container { display: flex; flex-direction: column; width: 100%; gap: 6px; padding-left: 42px; box-sizing: border-box; }
+        .phone-wrapper { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; }
+        
         .contact-number {
-            color: #0078d7;
-            font-weight: bold; 
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
+            color: var(--border-focus); font-weight: bold; font-size: 0.9em;
+            display: flex; align-items: center; gap: 6px; transition: color 0.2s;
         }
-
         .contact-card:hover .contact-number { color: #3399ff; }
 
-        /* Phone Icon */
         .contact-number::before {
             content: ""; display: inline-block; width: 14px; height: 14px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230078d7'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E");
             background-size: contain; background-repeat: no-repeat;
-            transition: background-image 0.2s;
-        }
-        .contact-card:hover .contact-number::before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233399ff'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E");
         }
 
-        /* --- COPY BUTTON --- */
-        .copy-btn {
-            background: none;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: opacity 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .contact-card:hover .copy-btn { opacity: 0.8; }
-        .copy-btn:hover { opacity: 1 !important; transform: scale(1.1); }
-
-        .copy-icon {
-            width: 14px; height: 14px;
-            fill: #aaaaaa;
+        /* --- DELETE MODE --- */
+        .delete-mode .contact-card { border-color: #ff4d4d; }
+        .delete-mode .contact-card:hover { background-color: rgba(255, 77, 77, 0.1); border-color: #ff4d4d; }
+        .delete-mode .contact-card::after {
+            content: "✕"; position: absolute; top: 10px; right: 15px;
+            color: #ff4d4d; font-weight: bold; font-size: 1.2em;
         }
 
-        /* --- MODAL STYLES --- */
+        /* --- MODALS --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 1000;
+            background-color: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content {
-            background-color: #2d2d2d; padding: 25px; border-radius: 8px; border: 1px solid #444;
-            width: 300px; display: flex; flex-direction: column; gap: 12px;
+            background-color: var(--bg-card); padding: 25px; border-radius: 8px; border: 1px solid var(--border-main);
+            width: 320px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .modal-content h2 { margin-top: 0; margin-bottom: 5px; }
+        .modal-content h2 { margin-top: 0; margin-bottom: 5px; color: var(--text-main); }
         .modal-content input {
-            padding: 10px; border-radius: 4px; border: 1px solid #555; background-color: #1e1e1e; color: #fff;
+            padding: 10px; border-radius: 4px; border: 1px solid var(--border-main);
+            background-color: var(--input-bg); color: var(--text-main);
         }
+        .modal-content p { color: var(--text-muted); font-size: 0.9em; margin: 0; line-height: 1.4; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
         .btn-cancel { background-color: #555; color: white; padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;}
         .btn-save { background-color: #0078d7; color: white; padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
         .btn-save:hover { background-color: #005a9e; }
-        .btn-cancel:hover { background-color: #666; }
+        .btn-cancel:hover { filter: brightness(1.2); }
+
+        #qr-image { display: block; margin: 10px auto; background: white; padding: 10px; border-radius: 8px; width: 200px; height: 200px; }
+        .text-center { text-align: center; }
 
     </style>
 </head>
@@ -207,7 +212,24 @@
             <h1>Team Contacts</h1>
             <input type="text" id="search-input" class="search-bar" placeholder="Search names or numbers...">
         </div>
+        
         <div class="action-buttons">
+            <button class="icon-btn" id="theme-toggle" title="Toggle Light/Dark Mode">
+                <div class="theme-icon-container">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--text-main)"><path d="M12 7a5 5 0 110 10 5 5 0 010-10zM12 2v2a8 8 0 010 16v2a10 10 0 000-20z"/><path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 1.5c-4.694 0-8.5 3.806-8.5 8.5s3.806 8.5 8.5 8.5 8.5-3.806 8.5-8.5-3.806-8.5-8.5-8.5z"/></svg>
+                    <span class="theme-slash">/</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--text-main)"><path d="M12 2a10 10 0 000 20c.348 0 .692-.018 1.03-.053a1 1 0 00.916-.949A9 9 0 0113.14 4.101a1 1 0 00-.916-.949C12.692 2.018 12.348 2 12 2zm1 18a8 8 0 110-16 8 8 0 010 16z"/></svg>
+                </div>
+            </button>
+            
+            <button class="icon-btn" id="view-toggle" title="Toggle Grid/List View">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+            </button>
+
+            <button id="sync-btn" title="Sync with GitHub Gist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" style="vertical-align: middle; margin-right: 4px;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg> Cloud Sync
+            </button>
+
             <button id="export-btn" title="Download Backup">Export</button>
             <button id="import-btn" title="Load Backup">Import</button>
             <input type="file" id="file-input" accept=".json" style="display: none;">
@@ -217,26 +239,60 @@
         </div>
     </div>
 
+    <div id="recent-section" style="display: none;">
+        <div class="section-title">Recently Used</div>
+        <div class="contact-grid" id="recent-grid"></div>
+    </div>
+
+    <div class="section-title">All Contacts</div>
     <div class="contact-grid" id="grid">
         </div>
 
     <div class="modal-overlay" id="add-modal">
         <div class="modal-content">
-            <h2>Add Contact</h2>
-            <input type="text" id="fname" placeholder="First Name" autocomplete="off">
-            <input type="text" id="lname" placeholder="Last Name" autocomplete="off">
+            <h2 id="modal-title">Add Contact</h2>
+            <input type="text" id="fname" placeholder="First Name / Company" autocomplete="off">
+            <input type="text" id="lname" placeholder="Last Name / Dept (Optional)" autocomplete="off">
             <input type="tel" id="primary-phone" placeholder="Primary Phone (Required)" autocomplete="off">
             <input type="tel" id="work-phone" placeholder="Work Phone (Optional)" autocomplete="off">
-            
             <div class="modal-buttons">
-                <button class="btn-cancel" id="cancel-btn">Cancel</button>
+                <button class="btn-cancel" onclick="closeModal('add-modal')">Cancel</button>
                 <button class="btn-save" id="save-btn">Save</button>
             </div>
         </div>
     </div>
 
+    <div class="modal-overlay" id="qr-modal">
+        <div class="modal-content text-center">
+            <h2>Scan to Save</h2>
+            <p id="qr-name" style="color: var(--text-main); font-weight: bold;"></p>
+            <img id="qr-image" src="" alt="QR Code">
+            <p>Point your phone's camera at this code to save the contact.</p>
+            <div class="modal-buttons" style="justify-content: center;">
+                <button class="btn-cancel" onclick="closeModal('qr-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="sync-modal">
+        <div class="modal-content">
+            <h2>Cloud Settings</h2>
+            <p>Enter a GitHub Gist ID to sync contacts across devices.</p>
+            <input type="text" id="gist-id" placeholder="GitHub Gist ID" autocomplete="off">
+            <input type="password" id="gist-token" placeholder="GitHub Token (Only needed to Push)" autocomplete="off">
+            <div class="modal-buttons" style="justify-content: space-between; margin-top: 15px;">
+                <button class="btn-cancel" onclick="closeModal('sync-modal')">Close</button>
+                <div>
+                    <button class="btn-cancel" id="pull-btn" style="background-color: #0078d7;">Pull (Load)</button>
+                    <button class="btn-save" id="push-btn" style="background-color: #2ea44f;">Push (Save)</button>
+                </div>
+            </div>
+            <p id="sync-status" class="text-center" style="margin-top: 10px; font-weight: bold; display: none;"></p>
+        </div>
+    </div>
+
     <script>
-        // --- 1. DEFAULT DATA & STATE MANAGEMENT ---
+        // --- DATA & STATE ---
         const defaultContacts = [
             { id: "1", name: "Aaron, Gonzales", phone: "417-592-3279", work: "" },
             { id: "2", name: "Avery, Stephenson", phone: "706-761-1940", work: "" },
@@ -265,149 +321,184 @@
             { id: "25", name: "Zachary, Gilbreth", phone: "417-622-9391", work: "" }
         ];
 
-        // Load from Local Storage, or use default if empty
         let contactsData = JSON.parse(localStorage.getItem('3cx_contacts_db'));
-        if (!contactsData || contactsData.length === 0) {
-            contactsData = [...defaultContacts];
-        }
+        if (!contactsData || contactsData.length === 0) contactsData = [...defaultContacts];
+        let recentIds = JSON.parse(localStorage.getItem('3cx_recents') || '[]');
+        let isDeleteMode = false;
+        let editingContactId = null;
 
         const grid = document.getElementById('grid');
-        let isDeleteMode = false;
+        const recentGrid = document.getElementById('recent-grid');
+        const recentSection = document.getElementById('recent-section');
 
-        // --- 2. RENDER ENGINE ---
-        function renderGrid(dataToRender) {
-            grid.innerHTML = ''; // Clear grid
+        // Theme & View Settings
+        if (localStorage.getItem('3cx_theme') === 'light') document.body.classList.add('light-mode');
+        if (localStorage.getItem('3cx_view') === 'list') { grid.classList.add('list-view'); recentGrid.classList.add('list-view'); }
 
-            // Alphabetical Sort
-            dataToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('3cx_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        });
+        document.getElementById('view-toggle').addEventListener('click', () => {
+            grid.classList.toggle('list-view'); recentGrid.classList.toggle('list-view');
+            localStorage.setItem('3cx_view', grid.classList.contains('list-view') ? 'list' : 'grid');
+        });
 
-            dataToRender.forEach(contact => {
-                const cleanPhone = contact.phone.replace(/[^0-9+]/g, '');
-                
-                const card = document.createElement('a');
-                card.href = `tel:${cleanPhone}`;
-                card.className = 'contact-card';
-                card.title = contact.name;
-                card.dataset.id = contact.id; // Tag for deletion
-
-                let html = `<span class="contact-name">${contact.name}</span>`;
-                
-                // Primary Phone Row with Copy Button
-                html += `
-                    <div class="phone-wrapper">
-                        <span class="contact-number">${contact.phone}</span>
-                        <button class="copy-btn" title="Copy Number" onclick="copyText(event, '${contact.phone}')">
-                            <svg class="copy-icon" viewBox="0 0 24 24">
-                                <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                            </svg>
-                        </button>
-                    </div>`;
-
-                // Work Phone Row (if it exists)
-                if (contact.work) {
-                    const cleanWork = contact.work.replace(/[^0-9+]/g, '');
-                    html += `
-                    <div class="phone-wrapper" style="margin-top: -5px;">
-                        <span class="contact-number" style="color: #888;">${contact.work} (W)</span>
-                        <button class="copy-btn" title="Copy Work Number" onclick="copyText(event, '${contact.work}')">
-                            <svg class="copy-icon" viewBox="0 0 24 24">
-                                <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                            </svg>
-                        </button>
-                    </div>`;
-                }
-
-                card.innerHTML = html;
-                grid.appendChild(card);
-            });
+        // --- AVATAR HELPERS ---
+        const avatarColors = ['#e53935', '#d81b60', '#8e24aa', '#3949ab', '#1e88e5', '#00897b', '#43a047', '#f4511e', '#6d4c41', '#546e7a'];
+        
+        function getInitials(name) {
+            const parts = name.replace(/[^a-zA-Z0-9 ]/g, '').split(' ').filter(p => p);
+            if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+            if (parts.length === 1) return parts[0].substring(0, Math.min(2, parts[0].length)).toUpperCase();
+            return '??';
         }
 
-        // Initial Render
-        renderGrid(contactsData);
+        function getAvatarColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return avatarColors[Math.abs(hash) % avatarColors.length];
+        }
+
+        // --- RENDER ENGINE ---
+        function generateCardHTML(contact) {
+            const cleanPhone = contact.phone.replace(/[^0-9+]/g, '');
+            const card = document.createElement('a');
+            card.href = `tel:${cleanPhone}`;
+            card.className = 'contact-card';
+            card.title = contact.name;
+            card.dataset.id = contact.id;
+            card.onclick = (e) => handleCardAction(e, contact.id);
+
+            const initials = getInitials(contact.name);
+            const color = getAvatarColor(contact.name);
+
+            let html = `
+                <div class="card-actions">
+                    <button class="card-action-btn" title="Show QR Code" onclick="showQRCode(event, '${contact.id}')">
+                        <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-3 0h2v2h-2zm3 3h3v2h-3zm-3 0h2v2h-2zm3 3h3v2h-3zm-3 0h2v2h-2zm-3-3h2v2h-2zm0-3h2v2h-2zm0 6h2v5h-2z"/></svg>
+                    </button>
+                    <button class="card-action-btn" title="Edit Contact" onclick="openEditModal(event, '${contact.id}')">
+                        <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </button>
+                </div>
+                
+                <div class="name-row">
+                    <div class="avatar" style="background-color: ${color};">${initials}</div>
+                    <div class="contact-name-wrapper">
+                        <span class="contact-name">${contact.name}</span>
+                    </div>
+                </div>
+
+                <div class="phones-container">
+                    <div class="phone-wrapper">
+                        <span class="contact-number">${contact.phone}</span>
+                        <button class="card-action-btn" style="opacity: 0.5;" title="Copy Number" onclick="copyText(event, '${contact.phone}', '${contact.id}')">
+                            <svg class="card-icon" viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>`;
+
+            if (contact.work) {
+                html += `
+                    <div class="phone-wrapper">
+                        <span class="contact-number" style="color: var(--text-muted);">${contact.work} (W)</span>
+                        <button class="card-action-btn" style="opacity: 0.5;" title="Copy Work Number" onclick="copyText(event, '${contact.work}', '${contact.id}')">
+                            <svg class="card-icon" viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>`;
+            }
+            html += `</div>`;
+            card.innerHTML = html;
+            return card;
+        }
+
+        function renderGrids(dataToRender) {
+            grid.innerHTML = ''; recentGrid.innerHTML = '';
+            const searchVal = document.getElementById('search-input').value;
+            
+            if (searchVal === '' && recentIds.length > 0) {
+                recentSection.style.display = 'block';
+                recentIds.forEach(id => {
+                    const contact = contactsData.find(c => c.id === id);
+                    if (contact) recentGrid.appendChild(generateCardHTML(contact));
+                });
+            } else { recentSection.style.display = 'none'; }
+
+            const sortedData = [...dataToRender].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+            sortedData.forEach(contact => grid.appendChild(generateCardHTML(contact)));
+        }
+
+        renderGrids(contactsData);
 
         function saveAndRender() {
             localStorage.setItem('3cx_contacts_db', JSON.stringify(contactsData));
-            renderGrid(contactsData);
-            document.getElementById('search-input').value = ''; // Reset search
+            renderGrids(contactsData);
         }
 
-        // --- 3. LIVE SEARCH ---
-        document.getElementById('search-input').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase();
-            const filtered = contactsData.filter(c => 
-                c.name.toLowerCase().includes(term) || 
-                c.phone.includes(term) || 
-                (c.work && c.work.includes(term))
-            );
-            renderGrid(filtered);
-        });
+        // --- INTERACTION LOGIC ---
+        function logRecent(id) {
+            recentIds = recentIds.filter(r => r !== id);
+            recentIds.unshift(id);
+            if (recentIds.length > 4) recentIds.pop();
+            localStorage.setItem('3cx_recents', JSON.stringify(recentIds));
+            renderGrids(contactsData);
+        }
 
-        // --- 4. CLICK TO COPY ---
-        window.copyText = function(event, text) {
-            event.preventDefault(); // Stop the 'tel:' link
-            event.stopPropagation(); // Stop the card click
-            
+        window.handleCardAction = function(e, id) {
+            if (e.target.closest('.card-action-btn') || isDeleteMode) { e.preventDefault(); return; }
+            logRecent(id);
+        }
+
+        window.copyText = function(e, text, id) {
+            e.preventDefault(); e.stopPropagation(); logRecent(id);
             navigator.clipboard.writeText(text).then(() => {
-                const btn = event.currentTarget;
-                const originalHTML = btn.innerHTML;
-                // Temporarily show a checkmark
-                btn.innerHTML = `<svg class="copy-icon" viewBox="0 0 24 24" fill="#00ff00"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
-                setTimeout(() => { btn.innerHTML = originalHTML; }, 1000);
+                const btn = e.currentTarget; const originalHTML = btn.innerHTML;
+                btn.innerHTML = `<svg class="card-icon" viewBox="0 0 24 24" fill="#00ff00"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+                setTimeout(() => btn.innerHTML = originalHTML, 1000);
             });
         }
 
-        // --- 5. EXPORT / IMPORT ---
-        document.getElementById('export-btn').addEventListener('click', () => {
-            const dataStr = JSON.stringify(contactsData, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `3cx-contacts-backup-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        });
+        // --- QR CODE LOGIC ---
+        window.showQRCode = function(e, id) {
+            e.preventDefault(); e.stopPropagation();
+            const contact = contactsData.find(c => c.id === id);
+            if (!contact) return;
 
-        document.getElementById('import-btn').addEventListener('click', () => {
-            document.getElementById('file-input').click();
-        });
+            let cleanName = contact.name.replace(',', '');
+            let vCard = `BEGIN:VCARD\nVERSION:3.0\nFN:${cleanName}\nTEL:${contact.phone}`;
+            if(contact.work) vCard += `\nTEL;TYPE=WORK:${contact.work}`;
+            vCard += `\nEND:VCARD`;
 
-        document.getElementById('file-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            // Using api.qrserver.com to instantly generate the QR code
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(vCard)}`;
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (Array.isArray(importedData)) {
-                        contactsData = importedData;
-                        saveAndRender();
-                        alert("Contacts imported successfully!");
-                    } else {
-                        alert("Invalid file format. Please upload a valid backup JSON.");
-                    }
-                } catch (err) {
-                    alert("Error parsing file. Ensure it is a valid JSON backup.");
-                }
-            };
-            reader.readAsText(file);
-            this.value = ''; // Reset input
+            document.getElementById('qr-image').src = qrUrl;
+            document.getElementById('qr-name').textContent = contact.name;
+            document.getElementById('qr-modal').style.display = 'flex';
+        }
+
+        // --- MODAL HELPERS ---
+        window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; }
+        
+        // --- ADD/EDIT CONTACT ---
+        document.getElementById('add-btn').addEventListener('click', () => {
+            editingContactId = null; document.getElementById('modal-title').textContent = "Add Contact";
+            document.getElementById('fname').value = ''; document.getElementById('lname').value = '';
+            document.getElementById('primary-phone').value = ''; document.getElementById('work-phone').value = '';
+            document.getElementById('add-modal').style.display = 'flex';
         });
 
-        // --- 6. ADD & REMOVE LOGIC ---
-        const modal = document.getElementById('add-modal');
-        
-        document.getElementById('add-btn').addEventListener('click', () => modal.style.display = 'flex');
-        
-        const closeModal = () => {
-            modal.style.display = 'none';
-            document.getElementById('fname').value = '';
-            document.getElementById('lname').value = '';
-            document.getElementById('primary-phone').value = '';
-            document.getElementById('work-phone').value = '';
-        };
-        document.getElementById('cancel-btn').addEventListener('click', closeModal);
+        window.openEditModal = function(e, id) {
+            e.preventDefault(); e.stopPropagation();
+            const contact = contactsData.find(c => c.id === id);
+            if (!contact) return;
+
+            editingContactId = id; document.getElementById('modal-title').textContent = "Edit Contact";
+            const nameParts = contact.name.split(', ');
+            document.getElementById('fname').value = nameParts[0] || ''; document.getElementById('lname').value = nameParts[1] || '';
+            document.getElementById('primary-phone').value = contact.phone; document.getElementById('work-phone').value = contact.work;
+            document.getElementById('add-modal').style.display = 'flex';
+        }
 
         document.getElementById('save-btn').addEventListener('click', () => {
             const fName = document.getElementById('fname').value.trim();
@@ -415,48 +506,134 @@
             const pPhone = document.getElementById('primary-phone').value.trim();
             const wPhone = document.getElementById('work-phone').value.trim();
 
-            if (!fName || !lName || !pPhone) {
-                alert("Please fill out First Name, Last Name, and Primary Phone.");
-                return;
+            if (!fName || !pPhone) { alert("First Name and Primary Phone are required."); return; }
+            const fullName = lName ? `${fName}, ${lName}` : fName;
+
+            if (editingContactId) {
+                const index = contactsData.findIndex(c => c.id === editingContactId);
+                if (index !== -1) contactsData[index] = { ...contactsData[index], name: fullName, phone: pPhone, work: wPhone };
+            } else {
+                contactsData.push({ id: Date.now().toString(), name: fullName, phone: pPhone, work: wPhone });
             }
+            saveAndRender(); closeModal('add-modal');
+        });
 
-            const newContact = {
-                id: Date.now().toString(), // Unique ID for safe deletion
-                name: `${fName}, ${lName}`,
-                phone: pPhone,
-                work: wPhone
-            };
-
-            contactsData.push(newContact);
-            saveAndRender();
-            closeModal();
+        // --- LIVE SEARCH & DELETE ---
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = contactsData.filter(c => c.name.toLowerCase().includes(term) || c.phone.includes(term) || (c.work && c.work.includes(term)));
+            renderGrids(filtered);
         });
 
         const removeBtn = document.getElementById('remove-btn');
         removeBtn.addEventListener('click', () => {
             isDeleteMode = !isDeleteMode;
-            if (isDeleteMode) {
-                grid.classList.add('delete-mode');
-                removeBtn.textContent = 'Done Removing';
-                removeBtn.classList.add('btn-danger-active');
-            } else {
-                grid.classList.remove('delete-mode');
-                removeBtn.textContent = 'Remove Contact';
-                removeBtn.classList.remove('btn-danger-active');
-            }
+            [grid, recentGrid].forEach(g => isDeleteMode ? g.classList.add('delete-mode') : g.classList.remove('delete-mode'));
+            removeBtn.textContent = isDeleteMode ? 'Done Removing' : 'Remove Contact';
+            isDeleteMode ? removeBtn.classList.add('btn-danger-active') : removeBtn.classList.remove('btn-danger-active');
         });
 
-        grid.addEventListener('click', (e) => {
+        document.body.addEventListener('click', (e) => {
+            if (!isDeleteMode) return;
             const card = e.target.closest('.contact-card');
-            if (!card) return;
-
-            if (isDeleteMode) {
+            if (card && card.dataset.id) {
                 e.preventDefault(); 
-                const idToDelete = card.dataset.id;
-                contactsData = contactsData.filter(c => c.id !== idToDelete);
+                contactsData = contactsData.filter(c => c.id !== card.dataset.id);
+                recentIds = recentIds.filter(id => id !== card.dataset.id);
                 saveAndRender();
             }
         });
+
+        // --- IMPORT / EXPORT ---
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const blob = new Blob([JSON.stringify(contactsData, null, 2)], { type: "application/json" });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `3cx-contacts-backup.json`;
+            a.click(); URL.revokeObjectURL(a.href);
+        });
+
+        document.getElementById('import-btn').addEventListener('click', () => document.getElementById('file-input').click());
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) { contactsData = imported; saveAndRender(); alert("Imported successfully!"); }
+                } catch (err) { alert("Error parsing file."); }
+            };
+            reader.readAsText(file); this.value = ''; 
+        });
+
+        // --- CLOUD SYNC LOGIC ---
+        document.getElementById('gist-id').value = localStorage.getItem('3cx_gist_id') || '';
+        document.getElementById('gist-token').value = localStorage.getItem('3cx_gist_token') || '';
+
+        document.getElementById('sync-btn').addEventListener('click', () => {
+            document.getElementById('sync-status').style.display = 'none';
+            document.getElementById('sync-modal').style.display = 'flex';
+        });
+
+        function showSyncStatus(msg, color) {
+            const status = document.getElementById('sync-status');
+            status.textContent = msg;
+            status.style.color = color;
+            status.style.display = 'block';
+        }
+
+        document.getElementById('pull-btn').addEventListener('click', async () => {
+            const gistId = document.getElementById('gist-id').value.trim();
+            const token = document.getElementById('gist-token').value.trim();
+            if (!gistId) return showSyncStatus("Gist ID is required to Pull.", "#ff4d4d");
+
+            localStorage.setItem('3cx_gist_id', gistId);
+            localStorage.setItem('3cx_gist_token', token);
+            showSyncStatus("Pulling from cloud...", "var(--text-main)");
+
+            try {
+                const headers = token ? { 'Authorization': `token ${token}` } : {};
+                const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+                if (!res.ok) throw new Error("Failed to fetch Gist.");
+                const data = await res.json();
+                
+                // Assumes your file inside the Gist is named contacts.json
+                const fileContent = data.files['contacts.json']?.content;
+                if (!fileContent) throw new Error("No contacts.json found in Gist.");
+
+                contactsData = JSON.parse(fileContent);
+                saveAndRender();
+                showSyncStatus("Successfully pulled and updated!", "#2ea44f");
+                setTimeout(() => closeModal('sync-modal'), 1500);
+            } catch (err) {
+                showSyncStatus(err.message, "#ff4d4d");
+            }
+        });
+
+        document.getElementById('push-btn').addEventListener('click', async () => {
+            const gistId = document.getElementById('gist-id').value.trim();
+            const token = document.getElementById('gist-token').value.trim();
+            
+            if (!gistId || !token) return showSyncStatus("Gist ID and Token are required to Push.", "#ff4d4d");
+
+            localStorage.setItem('3cx_gist_id', gistId);
+            localStorage.setItem('3cx_gist_token', token);
+            showSyncStatus("Pushing to cloud...", "var(--text-main)");
+
+            try {
+                const payload = { files: { 'contacts.json': { content: JSON.stringify(contactsData, null, 2) } } };
+                const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error("Failed to update Gist. Check your token.");
+                showSyncStatus("Successfully pushed to cloud!", "#2ea44f");
+                setTimeout(() => closeModal('sync-modal'), 1500);
+            } catch (err) {
+                showSyncStatus(err.message, "#ff4d4d");
+            }
+        });
+
     </script>
 </body>
 </html>
